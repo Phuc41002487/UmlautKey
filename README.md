@@ -1,6 +1,6 @@
 # Purpose
-The application is developed to support typing three umlauts (ä, ö, ü) and the sharp s (ß, called Eszett or scharfes S) on a non-German layour keyboard.<br>
-Currently there is no GUI but there will be soon.
+The application is developed to support typing three umlauts (ä, ö, ü) and the sharp s (ß, called Eszett or scharfes S) on a non-German layour keyboard.  
+The app is a Nim version inspired from the Rust version (develop by [Mr. Duong](https://github.com/duong-se)) which can be found [here](https://github.com/duong-se/umlautkey)
 
 # How to use
 To run the application simply run the UmlautKey.exe in CMD.<br>
