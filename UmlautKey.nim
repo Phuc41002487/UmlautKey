@@ -12,8 +12,13 @@ proc sendBackspace() =
 proc sendUnicodeChar(ch: WCHAR) =
   var input: INPUT
   input.`type` = INPUT_KEYBOARD
+  # Ignore virtual key
   input.ki.wVk = 0
+  # wScan is used to hold a hardware scan code or a unicode unit (UTF-16)
   input.ki.wScan = ch
+  # The flag KEYEVENTF_UNICODE tells Windows how to interpret wScan
+  # Without the flag, Windows interprets wScan as a keyboard scan code (hardware-level key position), not a character
+  # Without flag, ch is  treated as scan code and this could lead to wrong key or no input (depend on the keyboard layout)
   input.ki.dwFlags = KEYEVENTF_UNICODE
   SendInput(1, addr input, sizeof(INPUT).int32)
 
