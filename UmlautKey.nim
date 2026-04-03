@@ -110,18 +110,6 @@ proc hookProc(nCode: int32, wParam: WPARAM, lParam: LPARAM): LRESULT {.stdcall.}
   return CallNextHookEx(0, nCode, wParam, lParam)
 
 # Main
-# var running {.global.}: Atomic[bool]
-
-# proc hookThread() {.thread.} = 
-#   let hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookProc, 0, 0)
-
-#   var msg: MSG
-#   while GetMessage(addr msg, 0, 0, 0) != 0:
-#     TranslateMessage(addr msg)
-#     DispatchMessage(addr msg)
-
-#   UnhookWindowsHookEx(hook)
-
 var hook: HHOOK
 var checkbox: HWND
 
