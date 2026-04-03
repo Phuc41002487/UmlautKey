@@ -110,11 +110,86 @@ proc hookProc(nCode: int32, wParam: WPARAM, lParam: LPARAM): LRESULT {.stdcall.}
   return CallNextHookEx(0, nCode, wParam, lParam)
 
 # Main
-let hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookProc, 0, 0)
+# var running {.global.}: Atomic[bool]
+
+# proc hookThread() {.thread.} = 
+#   let hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookProc, 0, 0)
+
+#   var msg: MSG
+#   while GetMessage(addr msg, 0, 0, 0) != 0:
+#     TranslateMessage(addr msg)
+#     DispatchMessage(addr msg)
+
+#   UnhookWindowsHookEx(hook)
+
+var hook: HHOOK
+var checkbox: HWND
+
+proc enableHook() =
+  if hook == 0:
+    hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookProc, 0, 0)
+
+proc disableHook() =
+  if hook != 0:
+    UnhookWindowsHookEx(hook)
+    hook = 0
+
+var
+  hBtn: HWND
+  isOn = false
+
+const
+  BTN_ID    = 1
+  WNDWIDTH  = 300
+  WNDHEIGHT = 200
+  BTNWIDTH  = 120
+  BTNHEIGHT = 50
+
+proc wndProc(hwnd: HWND, msg: UINT, wParam: WPARAM, lParam: LPARAM): LRESULT {.stdcall.} =
+  case msg:
+
+  of WM_CREATE:
+    hBtn = CreateWindow(
+      "BUTTON", "OFF",
+      WS_VISIBLE or WS_CHILD or BS_PUSHBUTTON,
+      (WNDWIDTH  - BTNWIDTH)  div 2,   # x: centred
+      (WNDHEIGHT - BTNHEIGHT) div 2,   # y: centred
+      BTNWIDTH, BTNHEIGHT,
+      hwnd, cast[HMENU](BTN_ID), GetModuleHandle(nil), nil
+    )
+    return 0
+
+  of WM_COMMAND:
+    if LOWORD(wParam) == BTN_ID:
+      isOn = not isOn
+      if isOn:
+        enableHook()
+      else:
+        disableHook()
+      SetWindowText(hBtn, if isOn: "ON" else: "OFF")
+    return 0
+
+  of WM_DESTROY:
+    disableHook()
+    PostQuitMessage(0)
+    return 0
+  else:
+    return DefWindowProc(hwnd, msg, wParam, lParam)
+
+var wc: WNDCLASS
+wc.lpfnWndProc = wndProc
+wc.lpszClassName = "HookApp"
+RegisterClass(wc)
+
+let hwnd = CreateWindow(
+  "HookApp", "Umlaut Key",
+  WS_OVERLAPPEDWINDOW or WS_VISIBLE,
+  CW_USEDEFAULT, CW_USEDEFAULT,
+  WNDWIDTH, WNDHEIGHT,
+  0, 0, 0, nil
+)
 
 var msg: MSG
 while GetMessage(addr msg, 0, 0, 0) != 0:
   TranslateMessage(addr msg)
   DispatchMessage(addr msg)
-
-UnhookWindowsHookEx(hook)
